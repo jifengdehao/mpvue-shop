@@ -1,62 +1,76 @@
 function formatNumber(n) {
-  const str = n.toString()
-  return str[1] ? str : `0${str}`
+  const str = n.toString();
+  return str[1] ? str : `0${str}`;
 }
 
 export function formatTime(date) {
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
 
-  const hour = date.getHours()
-  const minute = date.getMinutes()
-  const second = date.getSeconds()
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+  const second = date.getSeconds();
 
-  const t1 = [year, month, day].map(formatNumber).join('/')
-  const t2 = [hour, minute, second].map(formatNumber).join(':')
+  const t1 = [year, month, day].map(formatNumber).join("/");
+  const t2 = [hour, minute, second].map(formatNumber).join(":");
 
-  return `${t1} ${t2}`
+  return `${t1} ${t2}`;
 }
 
 
 //-------------------------------------------------------------------------请求的封装
 
-const host = 'https://www.heyuhsuo.xyz/heyushuo';
+//定义计时器
+let loadCount = 0;
+
+const host = "https://www.heyuhsuo.xyz/heyushuo";
 export {
   host
-}
+};
+
 //请求封装
 function request(url, method, data, header = {}) {
+  loadCount++;
   wx.showLoading({
-    title: '加载中' //数据请求前loading
-  })
+    title: "加载中" //数据请求前loading
+  });
   return new Promise((resolve, reject) => {
     wx.request({
       url: host + url, //仅为示例，并非真实的接口地址
       method: method,
       data: data,
       header: {
-        'content-type': 'application/json' // 默认值
+        "content-type": "application/json" // 默认值
       },
-      success: function (res) {
-        wx.hideLoading();
-        resolve(res.data)
+      success: function(res) {
+        loadCount--;
+        if (!loadCount) {
+          wx.hideLoading();
+        }
+        resolve(res.data);
       },
-      fail: function (error) {
-        wx.hideLoading();
-        reject(false)
+      fail: function(error) {
+        console.log(error);
+        loadCount--;
+        if (!loadCount) {
+          wx.hideLoading();
+        }
+        reject(false);
       },
-      complete: function () {
+      complete: function() {
         wx.hideLoading();
       }
-    })
-  })
+    });
+  });
 }
+
 export function get(url, data) {
-  return request(url, 'GET', data)
+  return request(url, "GET", data);
 }
+
 export function post(url, data) {
-  return request(url, 'POST', data)
+  return request(url, "POST", data);
 }
 
 //-------------------------------------------------------------------------请求的封装
@@ -66,7 +80,7 @@ export function post(url, data) {
 
 
 export function toLogin() {
-  const userInfo = wx.getStorageSync('userInfo');
+  const userInfo = wx.getStorageSync("userInfo");
   if (!userInfo) {
     wx.navigateTo({
       url: "/pages/login/main"
@@ -77,7 +91,7 @@ export function toLogin() {
 }
 
 export function login() {
-  const userInfo = wx.getStorageSync('userInfo');
+  const userInfo = wx.getStorageSync("userInfo");
   if (userInfo) {
     return userInfo;
   }
@@ -91,11 +105,9 @@ export function getStorageOpenid() {
   if (openId) {
     return openId;
   } else {
-    return ''
+    return "";
   }
 }
-
-
 
 
 export function getOpenid() {
@@ -124,4 +136,51 @@ export function getOpenid() {
   //   fail: () => {},
   //   complete: () => {}
   // });
+}
+
+
+// 防抖
+export function debounce(func, time) {
+  var timeout;
+  return function() {
+    var _this = this;
+    var args = arguments;
+    //清除定时器
+    clearTimeout(timeout);
+    timeout = setTimeout(function() {
+      func.apply(_this, args);
+    }, time);
+  };
+}
+
+// 节流-时间戳
+
+export function throttle(func, wait) {
+  let resultTime = 0;
+  return function() {
+    let now = new Date(); //时间戳
+    let _this = this;
+    let args = arguments;
+    // now - resulTime只有大于wait才会执行,在wait时间内只执行一次
+    if (now - resultTime > wait) {
+      func.apply(_this, args);
+      resultTime = now;
+    }
+  };
+}
+
+// 节流-设置定时器
+
+export function throttleTwo(func, wait) {
+  let timeout;
+  return function() {
+    let _this = this;
+    let args = arguments;
+    if (!timeout) {
+      timeout = setTimeout(function() {
+        func.apply(_this, args);
+        timeout = null;
+      }, wait);
+    }
+  };
 }

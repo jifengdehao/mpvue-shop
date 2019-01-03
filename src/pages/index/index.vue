@@ -3,7 +3,7 @@
     <div class="search">
       <div @click="toMappage">{{cityName}}</div>
       <div @click="toSearch">
-        <input type="text" placeholder="搜索商品">
+        <input type="text" placeholder="搜索商品" disabled>
         <span class="icon"></span>
       </div>
     </div>
@@ -147,7 +147,6 @@ export default {
       newCategoryList: []
     };
   },
-  components: {},
   methods: {
     ...mapMutations(["update"]),
     toMappage() {
@@ -159,13 +158,14 @@ export default {
           if (!res.authSetting["scope.userLocation"]) {
             wx.openSetting({
               success: res => {
+                console.log(res)
                 _this.getCityName();
               }
             });
           } else {
             wx.navigateTo({
               url: "/pages/mappage/main"
-            });
+            })
           }
         }
       });
